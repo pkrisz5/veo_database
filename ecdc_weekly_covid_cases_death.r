@@ -2,14 +2,6 @@ library(tidyverse)
 library(DBI)
 library(RPostgreSQL)
 
-con <- DBI::dbConnect(RPostgreSQL::PostgreSQL(), 
-                      dbname="x",
-                      host = "x",
-                      port = "x",
-                      user = "x",
-                      password = "x"
-)
-
 data <- read_csv("https://opendata.ecdc.europa.eu/covid19/nationalcasedeath/csv")
 
 data <- data %>%
@@ -27,4 +19,15 @@ data <- data%>%
          ecdc_covid_country_weekly_cases = as.numeric(ecdc_covid_country_weekly_cases),
          ecdc_covid_country_weekly_deaths = as.numeric(ecdc_covid_country_weekly_deaths))
 
+con <- DBI::dbConnect(RPostgreSQL::PostgreSQL(),
+                      dbname = Sys.getenv(c("DB")),
+                      host = Sys.getenv(c("DB_HOST")),
+                      port = Sys.getenv(c("DB_PORT")),
+                      user = Sys.getenv(c("SECRET_USERNAME")),
+                      password = Sys.getenv(c("SECRET_PASSWORD"))
+)
+
 dbWriteTable(con, "ecdc_covid_country_weekly", data , row.names = FALSE, overwrite = TRUE)
+
+dbDisconnect(con)
+
