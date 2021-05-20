@@ -1,0 +1,47 @@
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: populate-data
+  namespace: veo-populate-db
+spec:
+  schedule: "0 22 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: populate-data
+            image: kooplex/k8plex-ei-rstudio-basic
+            imagePullPolicy: IfNotPresent
+            env:
+            - name: SECRET_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: dbconnection
+                  key: username
+            - name: SECRET_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: dbconnection
+                  key: password
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: dbconnection
+                  key: dbhost
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: dbconnection
+                  key: dbport
+            - name: DB
+              valueFrom:
+                secretKeyRef:
+                  name: dbconnection
+                  key: db
+            command:
+            - /bin/sh
+            - -c
+            - git clone https://github.com/pkrisz5/veo_database.git && Rscript veo_database/ecdc_weekly_covid_cases_death.r
+          restartPolicy: OnFailure
+
